@@ -483,48 +483,94 @@ movieDB.movies.sort();
 let movieList = document.querySelector('.promo__interactive-list')
 movieList.innerHTML = ''
 
-function reload(arr, place) {
+
+function reload(arr, place, genre = 'All') {
     place.innerHTML = ''
     const modal = document.querySelector('.modal')
     const cross = document.querySelector('.cross')
+    
 
-    arr.forEach((item, idx) => {
+    let filteredArr = []
+    if (genre === 'All') {
+        filteredArr = arr
+    } else {
+        filteredArr = arr.filter(item => item.Genre === genre)
+    }
+
+    filteredArr.forEach((item, idx) => {
         let list = document.createElement('li')
         let deleteDiv = document.createElement('div')
-        
 
         list.classList.add('promo__interactive-item')
         deleteDiv.classList.add('delete')
-
-        place.append(list)
-
+        
         list.append((idx + 1) + '. ' + item.Title)
         list.append(deleteDiv)
 
         list.ondblclick = () => {
-            console.log("click");
             let modalTitle = document.querySelector('.modal__title')
             let modalDescription = document.querySelector('.modal__description')
             let modalImg = document.querySelector(".img-side img")
 
             modalTitle.innerHTML = item.Title
-            modalDescription.innerHTML = item.Plot 
+            modalDescription.innerHTML = item.Plot
             modalImg.src = item.Poster
 
-            modal.showModal();
+            modal.showModal()
+            backgroundChange(item)
         }
 
         deleteDiv.onclick = () => {
-            arr.splice(idx, 1)
-            reload(arr, place)
+            let originalIndex = arr.indexOf(item)
+            arr.splice(originalIndex, 1)
+            reload(arr, place, genre)
         }
 
         cross.onclick = () => {
             modal.close()
         }
+        
+        place.append(list)
     })
-
 }
 
+let genres = ["All", ...new Set(movies.map(item => item.Genre))]
+
+
+let ulGenres = document.querySelector('.ul-genres')
+
+function reloadGenres(arr, place) {
+    for (let item of arr) {
+        let liT = document.createElement('li')
+        let a = document.createElement('a')
+
+        a.classList.add('promo__menu-item')
+        a.href = '#'
+
+        place.append(liT)
+        liT.append(a)
+        a.append(item)
+    }
+
+    let AGenres = document.querySelectorAll('.promo__menu-item')
+
+    let prev = 0
+    AGenres.forEach((item, idx) => {
+        AGenres[prev].classList.add('promo__menu-item_active')
+        item.onclick = () => {
+            AGenres[prev].classList.remove('promo__menu-item_active')
+            item.classList.add('promo__menu-item_active')
+            reload(movies, movieList, item.innerHTML)
+            prev = idx
+        }
+    })
+}
+
+function backgroundChange(item) {
+    let bg = document.querySelector('.promo__bg')
+    bg.style.background = `url(${movie.Poster}) no-repeat center / cover` 
+}
+
+reloadGenres(genres, ulGenres)
 reload(movies, movieList)
 
